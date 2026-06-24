@@ -1,0 +1,21 @@
+{
+  "name": "100tt-watcher",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^14.22.1",
+    "dotenv": "^17.4.2",
+    "node-fetch": "^3.3.2"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "description": ""
+}
