@@ -2,10 +2,11 @@
   "name": "100tt-watcher",
   "version": "1.0.0",
   "type": "module",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "main": "100TT_auto.js",
+"scripts": {
+  "start": "node 100TT_auto.js",
+  "test": "echo \"Error: no test specified\" && exit 1"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
