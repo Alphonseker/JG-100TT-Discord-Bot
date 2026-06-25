@@ -289,12 +289,14 @@ async function checkUpdates() {
     }
     console.log(`✅ Finito l'import`);
     if (IS_TEST) {
-      await channel.send(":white_check_mark: **Mode test : Import terminé**");
+      const testChannel = await client.channels.fetch(CHANNEL_ID);
+      await testChannel.send(":white_check_mark: **Mode test : Import terminé**");
     }
   } else {
     console.log("Aucun nouveau score depuis la dernière exécution.");
     if (IS_TEST) {
-      await channel.send("**Mode test : Pas de nouveaux scores**");
+      const testChannel = await client.channels.fetch(CHANNEL_ID);
+      await testChannel.send("**Mode test : Pas de nouveaux scores**");
     }
   }
 }
