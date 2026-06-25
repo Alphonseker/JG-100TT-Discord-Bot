@@ -9,7 +9,7 @@ const IS_TEST = process.env.NODE_ENV === "test";
 const DATA_FILE = IS_TEST ? "data_testing.json" : "data.json";
 const OLD_DATA_FILE = IS_TEST ? "oldData_testing.json" : "oldData.json";
 
-const TOKEN = process.env.DISCORD_TOKEN;
+const TOKEN = IS_TEST ? process.env.TEST_TOKEN : process.env.PROD_TOKEN;
 const CHANNEL_ID = IS_TEST ? process.env.CHANNEL_ID_TEST : process.env.CHANNEL_ID_PROD;
 
 const client = new Client({
