@@ -5,7 +5,7 @@
   "main": "100TT_auto.js",
 "scripts": {
   "start": "node 100TT_auto.js",
-  "test": "echo \"Error: no test specified\" && exit 1"
+  "test-bot": "SET NODE_ENV=test&&node 100TT_auto.js"
 },
   "keywords": [],
   "author": "",

@@ -1,13 +1,16 @@
 import fs from "fs";
 import fetch from "node-fetch";
 import { Client, GatewayIntentBits } from "discord.js";
-require('dotenv').config();
+import dotenv from "dotenv";
+dotenv.config();
 
+// 1. Choix dynamique des fichiers JSON selon le mode
+const IS_TEST = process.env.NODE_ENV === "test";
+const DATA_FILE = IS_TEST ? "data_testing.json" : "data.json";
+const OLD_DATA_FILE = IS_TEST ? "oldData_testing.json" : "oldData.json";
 
-
-const TOKEN = process.env.DISCORD_TOKEN; // token privé
-const CHANNEL_ID1 = "1420794943806509088"; // Serv pv
-const CHANNEL_ID2 = "1419834404192129145"; // Serv JG
+const TOKEN = process.env.DISCORD_TOKEN;
+const CHANNEL_ID = IS_TEST ? process.env.CHANNEL_ID_TEST : process.env.CHANNEL_ID_PROD;
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages]
@@ -19,7 +22,7 @@ const GAMES = JSON.parse(fs.readFileSync("gameids.json", "utf-8"));
 // Charger les anciens scores
 function loadData() {
   try {
-    const data = JSON.parse(fs.readFileSync("data.json", "utf-8"));
+    const data = JSON.parse(fs.readFileSync(DATA_FILE, "utf-8"));
     const scoresArray = Array.isArray(data.scores) 
       ? data.scores 
       : Array.isArray(data.scores?.scores) 
@@ -40,7 +43,7 @@ function saveData(scores) {
     lastUpdate: new Date().toLocaleString(),
     scores
   };
-  fs.writeFileSync("data.json", JSON.stringify(data, null, 2));
+  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
 
 // Sauvegarder les scores au cas où
@@ -49,7 +52,7 @@ function saveOldData(scores) {
     lastUpdate: new Date().toLocaleString(),
     scores
   };
-  fs.writeFileSync("oldData.json", JSON.stringify(data, null, 2));
+  fs.writeFileSync(OLD_DATA_FILE, JSON.stringify(data, null, 2));
 }
 
 // Générer l'URL de la page stats TT du jeu
@@ -200,51 +203,55 @@ async function checkUpdates() {
   const diffs = getDiffs(oldData, newData);
 
   if (diffs.length > 0) {
-    const channel1 = await client.channels.fetch(CHANNEL_ID1);
-    const channel2 = await client.channels.fetch(CHANNEL_ID2);
+    const channel = await client.channels.fetch(CHANNEL_ID);
     let msg = "## :earth_africa: **Nouveaux tops 100TT depuis la dernière exécution**\n";
     if (oldData.lastUpdate) {
       msg += `-# :clock1: Mise à jour après : ${oldData.lastUpdate}\n\n`;
     }
 
+    const dateSeuil = IS_TEST ? new Date("2000-01-01") : new Date("2026-02-12T23:59:51");
 
     for (const { gameId, classement, pseudo, pseudoID, score, date } of diffs) {
+
+      const rowDate = new Date(date.replace(" ", "T"));
+      if (rowDate < dateSeuil) { continue;}
+
       console.log(`Nouveau top 100TT : ${gameId} - #${classement} - ${pseudo} (${score}) - ${date}`);
       const gameName = GAMES[gameId] || gameId;
       const url = getTTUrl(gameId);
       const profileUrl = getProfileURL(pseudoID);
       const totalGames = Object.keys(GAMES).length;
       const { nb100TT, depuisSeptembre } = getPlayerStats(pseudo, newData);
-      const dateSeuil = new Date("2026-02-12T23:59:51"); // date du jour
+      const rank = parseInt(classement, 10);
 
       if (new Date(date.replace(" ", "T")) >= dateSeuil) {
         if (nb100TT === totalGames) {
-          if(classement === "1") {
+          if(rank === 1) {
             msg += `> :trophy: **[${gameName}](${url}) - #${classement} - [${pseudo}](${profileUrl}) (${score}) - ${date} - :goat: **[${nb100TT}/${totalGames}]** :goat: (${depuisSeptembre})**\n`;
           } 
-          else if(classement === "2" && classement > 1) {
+          else if(rank === 2) {
             msg += `> :second_place: **[${gameName}](${url}) - #${classement} - [${pseudo}](${profileUrl}) (${score}) - ${date} - :sparkles: **[${nb100TT}/${totalGames}]** :sparkles: (${depuisSeptembre})**\n`;
           }
-          else if(classement === "3" && classement > 1) {
+          else if(rank === 3) {
             msg += `> :third_place: **[${gameName}](${url}) - #${classement} - [${pseudo}](${profileUrl}) (${score}) - ${date} - :star2: **[${nb100TT}/${totalGames}]** :star2: (${depuisSeptembre})**\n`;
           }
-          else if(classement <= 10 && classement > 1) {
+          else if(rank <= 10) {
             msg += `> :medal: **[${gameName}](${url}) - #${classement} - [${pseudo}](${profileUrl}) (${score}) - ${date} - :comet: **[${nb100TT}/${totalGames}]** :comet: (${depuisSeptembre})**\n`;
           }
           else{
             msg += `> [${gameName}](${url}) #${classement} - [${pseudo}](${profileUrl}) (${score}) - ${date} - :dizzy: **[${nb100TT}/${totalGames}]** :dizzy: (${depuisSeptembre})\n`;
           }
         } else {
-          if(classement === "1") {
+          if(rank === 1) {
           msg += `> :trophy: **[${gameName}](${url}) - #${classement} - [${pseudo}](${profileUrl}) (${score}) - ${date} - [${nb100TT}/${totalGames}] (${depuisSeptembre})**\n`;
           } 
-          else if(classement === "2" && classement > 1) {
+          else if(rank === 2) {
             msg += `> :second_place: **[${gameName}](${url}) - #${classement} - [${pseudo}](${profileUrl}) (${score}) - ${date} - [${nb100TT}/${totalGames}] (${depuisSeptembre})**\n`;
           }
-          else if(classement === "3" && classement > 1) {
+          else if(rank === 3) {
             msg += `> :third_place: **[${gameName}](${url}) - #${classement} - [${pseudo}](${profileUrl}) (${score}) - ${date} - [${nb100TT}/${totalGames}] (${depuisSeptembre})**\n`;
           }
-          else if(classement <= 10 && classement > 1) {
+          else if(rank <= 10) {
             msg += `> :medal: **[${gameName}](${url}) - #${classement} - [${pseudo}](${profileUrl}) (${score}) - ${date} - [${nb100TT}/${totalGames}] (${depuisSeptembre})**\n`;
           }
           else{
@@ -258,32 +265,21 @@ async function checkUpdates() {
     {
       const parts = splitMessage(msg, 2000);
       for (const part of parts) {
-        const sent1 = await channel1.send(part);
-        await sent1.suppressEmbeds(true)
+        const sent = await channel.send(part);
+        await sent.suppressEmbeds(true)
         setTimeout(async () => {
           try {
-            await sent1.suppressEmbeds(true);
+            await sent.suppressEmbeds(true);
             
           } catch (err) {
-            console.error("Erreur suppression embed (channel1) :", err);
+            console.error("Erreur suppression embed (channel) :", err);
           }
-        }, 500); // attendre 500 ms (0.5 seconde)
-
-        const sent2 = await channel2.send(part);
-        await sent2.suppressEmbeds(true)
-        setTimeout(async () => {
-          try {
-            await sent2.suppressEmbeds(true);
-          } catch (err) {
-            console.error("Erreur suppression embed (channel2) :", err);
-          }
-        }, 500);
+        }, 500); // attendre 0.5 seconde
       }
       saveData(newData);
     } else {
       console.log("MESSAGE TROP LONG")
-      await channel1.send('ERROR : Message trop long à envoyer (>30 000 caractères)\n\nARRET AUTOMATIQUE :zzz:');
-      await channel2.send('ERROR : Message trop long à envoyer (>30 000 caractères)\n\nARRET AUTOMATIQUE :zzz:');
+      await channel.send('ERROR : Message trop long à envoyer (>30 000 caractères)\n\nARRET AUTOMATIQUE :zzz:');
       saveOldData(oldData.scores);
 
       // Arrêt du bot en cas d'erreur
@@ -297,11 +293,11 @@ async function checkUpdates() {
   }
 }
 
-// Connexion Discord et exécution toutes les heures
+// Connexion Discord et exécution toutes les 5 minutes
 client.once("ready", () => {
   console.log(`✅ Connecté en tant que ${client.user.tag}`);
   checkUpdates(); // Exécution immédiate
-  setInterval(checkUpdates, 60 * 5 * 1000); // Puis toutes les 30 minutes
+  setInterval(checkUpdates, 60 * 5 * 1000); // Toutes les 5 minutes
 });
 
 client.login(TOKEN);
