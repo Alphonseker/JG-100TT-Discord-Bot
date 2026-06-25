@@ -278,16 +278,19 @@ async function checkUpdates() {
       }
       saveData(newData);
     } else {
-      console.log("MESSAGE TROP LONG")
-      await channel.send('ERROR : Message trop long à envoyer (>30 000 caractères)\n\nARRET AUTOMATIQUE :zzz:');
-      saveOldData(oldData.scores);
+      console.log("⚠️ MESSAGE TROP LONG")
+      await channel.send(
+        ":warning: **Trop de nouveaux scores accumulés d'un coup !**\n" +
+        "Pour éviter de spammer, l'affichage de cette mise à jour est ignoré.\n"
+      );
+      saveData(newData);
 
-      // Arrêt du bot en cas d'erreur
-      console.log("BOT STOPPED");
-      client.destroy();
-      process.exit(1);
+      console.log("✅ Base de données synchronisée, le bot reste en ligne.");
     }
     console.log(`✅ Finito l'import`);
+    if (NODE_ENV === "test") {
+      await channel.send(":white_check_mark: **Mode test : Import terminé**");
+    }
   } else {
     console.log("Aucun nouveau score depuis la dernière exécution.");
   }

@@ -195,5 +195,8 @@
     "quiz_imgSatPays":"Les Pays vus du ciel",
     "reg_sci_astr_const_exp":"Les constellations - Expert",
     "quiz_quelRegEur_exp":"Quelle est cette région d'Europe ? - Expert",
-    "reg_fr_bre":"Petite géographie de la Bretagne"
+    "reg_fr_bre":"Petite géographie de la Bretagne",
+    "quiz_imgSatPays_jr":"Les Pays vus du ciel - Junior",
+    "quiz_imgSatPays_exp":"Les Pays vus du ciel - Expert",
+    "reg_can_phy":"Géographie physique du Canada"
 }
