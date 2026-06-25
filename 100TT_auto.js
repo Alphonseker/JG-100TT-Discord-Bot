@@ -288,11 +288,14 @@ async function checkUpdates() {
       console.log("✅ Base de données synchronisée, le bot reste en ligne.");
     }
     console.log(`✅ Finito l'import`);
-    if (NODE_ENV === "test") {
+    if (IS_TEST) {
       await channel.send(":white_check_mark: **Mode test : Import terminé**");
     }
   } else {
     console.log("Aucun nouveau score depuis la dernière exécution.");
+    if (IS_TEST) {
+      await channel.send("**Mode test : Pas de nouveaux scores**");
+    }
   }
 }
 
